@@ -1,0 +1,24 @@
+[
+	{ "caption" : "-", "id" : "appearance-start"},
+	{
+		"caption" : "Fontofeelya",
+		"id" : "fontofeelya-menu",
+		"children" :
+		[
+			{
+			"caption": "Color Scheme",
+			"id": "fontofeelya-colors-menu",
+			"command": "color_scheme_status",
+			"children":[
+				{ "command": "brighten_colors", "caption" : "Brighten" },
+				{ "command": "darken_colors", "caption" : "Darken" },
+				{ "caption" : "-", "id" : "adjustments-end"},
+				{ "command": "fgbg_glow", "caption" : "Add Glow" },
+				{ "command": "invert_colors", "caption" : "Invert" },
+				{ "command": "desaturate_colors", "caption" : "Desaturate" },
+			]
+		}
+		]
+	},
+	{ "caption" : "-", "id" : "appearance-end"}
+]

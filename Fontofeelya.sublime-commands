@@ -1,0 +1,30 @@
+[
+	{
+		"caption": "Fontofeelya: Add FgBg Glow to Color Scheme"
+	,	"command": "fgbg_glow", "args": {"magn": 40}
+	}
+,	{
+		"caption": "Fontofeelya: Invert Color Scheme"
+	,	"command": "invert_colors"
+	}
+,	{
+		"caption": "Fontofeelya: Brighten Color Scheme"
+	,	"command": "brighten_colors"
+	}
+,	{
+		"caption": "Fontofeelya: Darken Color Scheme"
+	,	"command": "darken_colors"
+	}
+,	{
+		"caption": "Fontofeelya: Desaturate Color Scheme"
+	,	"command": "desaturate_colors"
+	}
+,	{
+		"caption": "Fontofeelya: Increase Size (+1px)"
+	,	"command": "adjust_font_size", "args": {"magn": 1}
+	}
+,	{
+		"caption": "Fontofeelya: Decrease Size (-1px)"
+	,	"command": "adjust_font_size", "args": {"magn": -1}
+	}
+]

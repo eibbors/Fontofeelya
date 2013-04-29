@@ -3,9 +3,9 @@ import os
 import sublime
 import sublime_plugin
 
-FONT_OPTIONS = ['no_antialias', 'gray_antialias', 'subpixel_antialias', 'directwrite', 'no_round']
 DICT_REGEX = re.compile(r'\s*(<dict>[\S\s]*?<key>\s*settings\s*</key>\s*<dict>[\S\s]*?</dict>\s*</dict>)\s*')
 KEY_STRING_REGEX = re.compile(r'\s*<key>(?P<k>[^<]+)</key>\s*<string>(?P<v>[^<]*)</string>\s*')
+KEY_DICT_REGEX = re.compile(r'\s*<key>(?P<k>[^<]+)</key>\s*<dict>([\S\s]*?)</dict>'')
 COLOR_REGEX = re.compile(r'^#(?P<r>[a-f\d]{1,2})(?P<g>[a-f\d]{1,2})(?P<b>[a-f\d]{1,2})(?P<a>[a-f\d]{2})?$', re.IGNORECASE)
 
 
@@ -203,11 +203,11 @@ class Color(object):
 
     # Totally inverts all 3 color channels
     def invert(self):
-        # print(self.__str__())
+        print(self.__str__())
         self.red = 255 - self.red
         self.green = 255 - self.green
         self.blue = 255 - self.blue
-        # print('->' + self.__str__())
+        print('->' + self.__str__())
 
         return self
 
@@ -221,16 +221,8 @@ class Color(object):
 
     # Simply negates magnitude and applies it brighten
     def darken(self, magn=10):
-        self.brighten(-magn)
+        brighten(-magn)
         return self
-
-    # Returns value of this color (average of all 3 channels)
-    def value(self):
-        return (self.red + self.green + self.blue) / 3
-
-    # Use the average of 3 color channels to produce grayscale color
-    def desaturate(self):
-        self.red = self.green = self.blue = self.value()
 
 
 # An automated way of setting a barely opaque background color for each scope settings
@@ -249,86 +241,48 @@ def fgbg_glow(pref, magn=14):
             pref['background'] = bg
     return pref
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-# COLOR SCHEME COMMANDS ----------------------------------------------------------- #
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+def adjust_contrast(pref, magn=5, style='light'):
+    fg = pref.get('foreground', None)
+    bg = pref.get('background', None)
+    if style == 'light':
+        f, b = -1, 1
+    else:
+        f, b = 1, -1
+    if fg:
+        fg.adjust(f*(fg.red/magn), f*(fg.green/magn), f*(fg.blue/magn))
+        pref['foreground'] = fg
+    if bg:
+        bg.adjust(b*(bg.red/magn), b*(bg.green/magn), b*(bg.blue/magn))
+        pref['background'] = bg
+    return pref
 
-class ColorSchemeStatusCommand(sublime_plugin.ApplicationCommand):
-
-    def run(self, magn=14):
-        cs = ColorScheme().parse_content()
-        name = cs.parsed[1].get('name', None)
-        if name:
-            sublime.status_message('Current Scheme: %s (%s)' % (name, cs.source))
-        else:
-            sublime.status_message('Current Scheme: %s' % (cs.source))            
 
 class FgbgGlowCommand(sublime_plugin.ApplicationCommand):
 
-    def run(self, magn=14):
-        cs = ColorScheme().parse_content(lambda p: fgbg_glow(p, magn)).serial_save_update()
+    def run(self):
+        cs = ColorScheme().parse_content(fgbg_glow).serialize_parsed()
+        cs.save_to_fontofeelya()
+        cs.update_settings()
 
 
-class BrightenColorsCommand(sublime_plugin.ApplicationCommand):
+class ContrastDarkCommand(sublime_plugin.ApplicationCommand):
 
-    def run(self, magn=14):
-        cs = ColorScheme().parse_content().map_colors(lambda c: c.brighten(magn)).serial_save_update()
+    def run(self, m=5):
+        cs = ColorScheme().parse_content(lambda p: adjust_contrast(p, m, 'dark')).serialize_parsed()
+        cs.save_to_fontofeelya()
+        cs.update_settings()
 
 
-class DarkenColorsCommand(sublime_plugin.ApplicationCommand):
+class ContrastLightCommand(sublime_plugin.ApplicationCommand):
 
-    def run(self, magn=14):
-        cs = ColorScheme().parse_content().map_colors(lambda c: c.darken(magn)).serial_save_update()
+    def run(self, m=5):
+        cs = ColorScheme().parse_content(lambda p: adjust_contrast(p, m, 'light')).serialize_parsed()
+        cs.save_to_fontofeelya()
+        cs.update_settings()
 
 
 class InvertColorsCommand(sublime_plugin.ApplicationCommand):
 
-    def run(self):
+    def run(self, m=5):
         cs = ColorScheme().parse_content().map_colors(lambda c: c.invert()).serial_save_update()
-
-
-class DesaturateColorsCommand(sublime_plugin.ApplicationCommand):
-
-    def run(self):
-        cs = ColorScheme().parse_content().map_colors(lambda c: c.desaturate()).serial_save_update()
-
-# Just testing
-# class DesaturateRedCommand(sublime_plugin.ApplicationCommand):
-
-#     def run(self, m=5):
-#         cs = ColorScheme().parse_content().map_colors(lambda c: c.adjust(c.value() - c.red)).serial_save_update()
-
-# class DesaturateGreenCommand(sublime_plugin.ApplicationCommand):
-
-#     def run(self, m=5):
-#         cs = ColorScheme().parse_content().map_colors(lambda c: c.adjust(0,c.value() - c.green)).serial_save_update()
-
-# class DesaturateBlueCommand(sublime_plugin.ApplicationCommand):
-
-#     def run(self, m=5):
-#         cs = ColorScheme().parse_content().map_colors(lambda c: c.adjust(0,0,c.value() - c.blue)).serial_save_update()
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-# FONT TWEAKING COMMANDS ---------------------------------------------------------- #
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-# Allow greater freedom when adjusting font size
-class AdjustFontSizeCommand(sublime_plugin.ApplicationCommand):
-
-    def run(self, magn=1):
-        s = sublime.load_settings("Preferences.sublime-settings")
-        current = s.get("font_size", 10) + magn
-        if current < 0:
-            current = 1
-        s.set("font_size", current)
-        sublime.save_settings("Preferences.sublime-settings")
-        sublime.status_message("Font size set to %spx" % current)
-
-# class ResetFontSizeCommand(sublime_plugin.ApplicationCommand):
-#     def run(self):
-#         s = sublime.load_settings("Preferences.sublime-settings")
-#         s.erase("font_size")
-
-#         sublime.save_settings("Preferences.sublime-settings")

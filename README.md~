@@ -56,8 +56,7 @@ For those of you who hate colors or want to reduce a color scheme to grayscale v
         sublime.run_command('darken_colors', {'magn': 90})
     ```
     
-Brighten or darken the current color scheme by a certain amount. Defaults to +/- 14, which is roughly a 5% increase or decrease. Screenshot below shows Katzen-Milch -> Brighten a few times -> Darken a few times
-![Brighten Darken Screenshot](http://eibbors.com/p/fontofeelya/darkbright.png)
+Brighten or darken the current color scheme by a certain amount. Defaults to +/- 14, which is roughly a 5% increase or decrease.
 
 I'm currently merging lots of little plugins into this and will submit to Package Control / Sublime Forums when it's got proper menu/commands and the basic font adjustments added.
 
