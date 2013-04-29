@@ -252,17 +252,7 @@ def fgbg_glow(pref, magn=14):
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # COLOR SCHEME COMMANDS ----------------------------------------------------------- #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
-class ColorSchemeStatusCommand(sublime_plugin.ApplicationCommand):
-
-    def run(self, magn=14):
-        cs = ColorScheme().parse_content()
-        name = cs.parsed[1].get('name', None)
-        if name:
-            sublime.status_message('Current Scheme: %s (%s)' % (name, cs.source))
-        else:
-            sublime.status_message('Current Scheme: %s' % (cs.source))            
+         
 
 class FgbgGlowCommand(sublime_plugin.ApplicationCommand):
 
@@ -314,21 +304,44 @@ class DesaturateColorsCommand(sublime_plugin.ApplicationCommand):
 # FONT TWEAKING COMMANDS ---------------------------------------------------------- #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-# Allow greater freedom when adjusting font size
+# Display font settings status message for context menu hover
+class FontafeelyaStatusCommand(sublime_plugin.ApplicationCommand):
+
+    def run(self):
+        s = sublime.load_settings("Preferences.sublime-settings")
+        face = s.get("font_face", '-System Default-')
+        size = s.get("font_size", 10)
+        options = s.get("font_options", '[]')
+        cs = ColorScheme().parse_content()
+        cs_name = cs.parsed[1].get('name', None)
+        if cs_name:
+            cs_text = "Color Scheme: %s (%s)" % (cs_name, cs.source)
+        else:
+            cs_text = "Color Scheme: %s" % cs.source
+        sublime.status_message("Current Font: %s @ %spx, Options: %s, %s" %(face, size, options, cs_text))
+
+# Allow total control over font size incr/decr,  freedom when adjusting font size
 class AdjustFontSizeCommand(sublime_plugin.ApplicationCommand):
 
-    def run(self, magn=1):
+    def run(self, magn=1, absolute=False):
         s = sublime.load_settings("Preferences.sublime-settings")
-        current = s.get("font_size", 10) + magn
-        if current < 0:
-            current = 1
-        s.set("font_size", current)
+        if magn == 0:
+            s.erase("font_size")
+            sublime.status_message("Font size reset")
+        else:
+            current = s.get("font_size", 10)
+            if 0 < abs(magn) < 1:
+                if absolute:
+                    current = round(current * magn)
+                else:
+                    current += round(current * magn)
+            else:
+                if absolute:
+                    current = magn
+                else:
+                    current += magn
+            if current < 0:
+                current = 1
+            s.set("font_size", current)
+            sublime.status_message("Font size set to %spx" % current)
         sublime.save_settings("Preferences.sublime-settings")
-        sublime.status_message("Font size set to %spx" % current)
-
-# class ResetFontSizeCommand(sublime_plugin.ApplicationCommand):
-#     def run(self):
-#         s = sublime.load_settings("Preferences.sublime-settings")
-#         s.erase("font_size")
-
-#         sublime.save_settings("Preferences.sublime-settings")

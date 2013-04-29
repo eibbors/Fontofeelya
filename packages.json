@@ -1,0 +1,20 @@
+{
+	"schema_version": "1.2",
+	"packages": [
+		{
+			"name": "Fontofeelya",
+			"description": "Fine tune the snot out of your font settings and tweak the bujeezus out of color schemes on the fly. Satisfy your deepest `fontopheliac` desires with the only Sublime Text plugin that wants FEEL you.",
+			"author": "eibbors (Robbie Saunders)",
+			"homepage": "http://github.com/eibbors/Fontofeelya",
+			"last_modified": "2013-04-28 21:00:00",
+			"platforms": {
+				"*": [
+					{
+						"version": "0.1",
+						"url": "https://github.com/eibbors/Fontofeelya/archive/master.zip"
+					}
+				]
+			}
+		}
+	]
+}

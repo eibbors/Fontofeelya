@@ -3,21 +3,36 @@
 	{
 		"caption" : "Fontofeelya",
 		"id" : "fontofeelya-menu",
+		"command": "fontafeelya_status",
 		"children" :
 		[
 			{
-			"caption": "Color Scheme",
-			"id": "fontofeelya-colors-menu",
-			"command": "color_scheme_status",
-			"children":[
-				{ "command": "brighten_colors", "caption" : "Brighten" },
-				{ "command": "darken_colors", "caption" : "Darken" },
-				{ "caption" : "-", "id" : "adjustments-end"},
-				{ "command": "fgbg_glow", "caption" : "Add Glow" },
-				{ "command": "invert_colors", "caption" : "Invert" },
-				{ "command": "desaturate_colors", "caption" : "Desaturate" },
-			]
-		}
+				"caption": "Font Size",
+				"id": "fontofeelya-fontsize-menu",
+				"children":[
+					{ "caption": "Increase +50%", "command": "adjust_font_size", "args": {"magn": 0.5} },	
+					{ "caption": "Increase +20%", "command": "adjust_font_size", "args": {"magn": 0.2} },	
+					{ "caption": "Increment ++", "command": "adjust_font_size", "args": {"magn": 1} },	
+					{ "caption" : "-" },
+					{ "caption": "Reset", "command": "adjust_font_size", "args": {"magn": 0} },
+					{ "caption" : "-" },
+					{ "caption": "Decrement --", "command": "adjust_font_size", "args": {"magn": -1} },
+					{ "caption": "Decrease -20%", "command": "adjust_font_size", "args": {"magn": -0.2} },
+					{ "caption": "Decrease -50%", "command": "adjust_font_size", "args": {"magn": -0.5} },
+				]
+			},
+			{
+				"caption": "Color Scheme",
+				"id": "fontofeelya-colors-menu",
+				"children":[
+					{ "command": "brighten_colors", "caption" : "Brighten" },
+					{ "command": "darken_colors", "caption" : "Darken" },
+					{ "caption" : "-" },
+					{ "command": "fgbg_glow", "caption" : "Add Glow" },
+					{ "command": "invert_colors", "caption" : "Invert" },
+					{ "command": "desaturate_colors", "caption" : "Desaturate" },
+				]
+			}
 		]
 	},
 	{ "caption" : "-", "id" : "appearance-end"}

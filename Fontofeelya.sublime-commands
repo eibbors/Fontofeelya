@@ -1,7 +1,7 @@
 [
 	{
 		"caption": "Fontofeelya: Add FgBg Glow to Color Scheme"
-	,	"command": "fgbg_glow", "args": {"magn": 40}
+	,	"command": "fgbg_glow", "args": {"magn": 14}
 	}
 ,	{
 		"caption": "Fontofeelya: Invert Color Scheme"
@@ -22,6 +22,7 @@
 ,	{
 		"caption": "Fontofeelya: Increase Size (+1px)"
 	,	"command": "adjust_font_size", "args": {"magn": 1}
+	,	"id": "incrfontsize"
 	}
 ,	{
 		"caption": "Fontofeelya: Decrease Size (-1px)"
