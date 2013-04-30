@@ -14,7 +14,19 @@ Font Commands
     
     
 This is your basic font size adjustment command, accepting an optional magnitude. There is purposefully no minimum font size enforced for positive results and the incr/decr commands included do not scale as I've found the extra freedom/precision to come in handy. Fontopheliacs will most likely agree, I presume.  
-    
+
+*Select Font Size*
+	
+    `sublime.run_command('select_font_size')`
+    `sublime.run_command('select_font_size', {'value': 22})
+
+*Select Antialias Type*
+
+    `sublime.run_command('select_anti_alias')`	
+    `sublime.run_command('select_anti_alias', {'value': 'no_antialias'})`	
+
+Both of the `Select X` commands display a quick panel which previews the selection when changed to provide a natural way of previewing the result.
+
 Color Scheme Commands
 ---------------------
 

@@ -28,4 +28,12 @@
 		"caption": "Fontofeelya: Decrease Size (-1px)"
 	,	"command": "adjust_font_size", "args": {"magn": -1}
 	}
+,	{
+		"caption": "Fontofeelya: Select Font Size"
+	,	"command": "select_font_size"
+	}
+,	{
+		"caption": "Fontofeelya: Select Anti-aliasing"
+	, 	"command": "select_anti_alias"
+	}
 ]

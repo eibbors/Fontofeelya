@@ -3,7 +3,17 @@ import os
 import sublime
 import sublime_plugin
 
-FONT_OPTIONS = ['no_antialias', 'gray_antialias', 'subpixel_antialias', 'directwrite', 'no_round']
+# Account for platform differences in antialias and all font options
+AA_TYPES = ['no_antialias', 'gray_antialias', 'subpixel_antialias']
+if sublime.platform() == 'windows':
+    AA_TYPES.append('directwrite') 
+FONT_OPTIONS = AA_TYPES.copy().extend(['no_bold', 'no_italic'])
+if sublime.platform() == 'osx':
+    FONT_OPTIONS.append('no_round')
+
+DEFAULT_FONTSIZE = 10
+
+# Regular Expressions used to parsed tmTheme files
 DICT_REGEX = re.compile(r'\s*(<dict>[\S\s]*?<key>\s*settings\s*</key>\s*<dict>[\S\s]*?</dict>\s*</dict>)\s*')
 KEY_STRING_REGEX = re.compile(r'\s*<key>(?P<k>[^<]+)</key>\s*<string>(?P<v>[^<]*)</string>\s*')
 COLOR_REGEX = re.compile(r'^#(?P<r>[a-f\d]{1,2})(?P<g>[a-f\d]{1,2})(?P<b>[a-f\d]{1,2})(?P<a>[a-f\d]{2})?$', re.IGNORECASE)
@@ -249,6 +259,90 @@ def fgbg_glow(pref, magn=14):
             pref['background'] = bg
     return pref
 
+
+AA_MENU =  ['System Default *reset*', 'Disable Anti-aliasing `no_antialias`', 'Grayscale Anti-aliasing `gray_antialias`', 'Subpixel Anti-aliasing `subpixel_antialias`']
+if 'directwrite' in AA_TYPES:
+    AA_MENU.append('Directwrite Rendering `directwrite`')
+USUAL_SIZES = ['6', '8', '10', '12', '14', '16', '18', '20', '24', '36', '48', '72']
+ALL_SIZES = ['%s' % x for x in range(72)]
+
+class FontConfig(object):
+    """Provide access to font configuration data and methods for retrieving user
+    input, previewing quick panel choices, etc."""
+    def __init__(self, settings='Preferences.sublime-settings'):
+        if isinstance(settings, "".__class__):
+            self.settings_id = settings
+            settings = sublime.load_settings(settings)
+        if isinstance(settings, sublime.Settings):
+            self.settings = settings
+            self.load_font_settings()
+
+    
+    def load_font_settings(self, settings=None):
+        settings = settings or self.settings
+        self.size = settings.get('font_size', DEFAULT_FONTSIZE)
+        self.face = settings.get('font_face', None)
+        options = settings.get('font_options', [])
+        self.antialias = -1 # Unspecified 
+        self.options = []
+        # Play golf with the antialias options specified to avoid confusing issues
+        for o in options:
+            if o in AA_TYPES:
+                i = AA_TYPES.index(o)
+                if i < self.antialias or self.antialias == -1:
+                    self.antialias = i
+            else:
+                self.options.append(o)
+
+    def save_config(self, value=None, type=None):
+        self.settings.set('font_size', self.size)
+        self.settings.set('font_face', self.face)
+        self.update_options()
+        sublime.save_settings(self.settings_id)
+        if type:
+            sublime.status_message("Fontafeelya: %s set to %s" % (type,value))
+
+    def update_options(self):
+        options = self.options.copy()
+        aa = self.aa()
+        if aa:
+            options.append(self.aa())
+        if options == []:
+            self.settings.erase('font_options')
+        else:
+            self.settings.set('font_options', options)
+
+    # Select Anti-Aliasing Menu + Preview
+    def select_aa(self, window=None, callback=None):
+        window = window or sublime.active_window()
+        callback = callback or (lambda p: self.save_config(AA_MENU[p], "Anti-Aliasing"))
+        sublime.active_window().show_quick_panel(AA_MENU, callback, 0, self.antialias+1, lambda p: self.aa(p-1))
+
+    # Select Font Size Menu + Preview
+    def select_size(self, window=None, callback=None):
+        window = window or sublime.active_window()
+        callback = callback or (lambda p: self.save_config(p+1, "Font size"))
+        sublime.active_window().show_quick_panel(ALL_SIZES, callback, 0, self.size+1, lambda p: self.settings.set("font_size", p))
+
+    def aa(self, value=None):
+        if value is None:
+            if self.antialias == -1:
+                return None
+            elif -1 < self.antialias < len(AA_TYPES):
+                return AA_TYPES[self.antialias]
+        elif isinstance(value, "".__class__):
+            self.antialias = AA_TYPES.index(value)
+        else:
+            self.antialias = value
+        self.update_options()
+
+    def setSize(self, value):
+        self.size = value
+        self.settings.set('font_size', self.size)
+
+
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # COLOR SCHEME COMMANDS ----------------------------------------------------------- #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -308,17 +402,32 @@ class DesaturateColorsCommand(sublime_plugin.ApplicationCommand):
 class FontafeelyaStatusCommand(sublime_plugin.ApplicationCommand):
 
     def run(self):
-        s = sublime.load_settings("Preferences.sublime-settings")
-        face = s.get("font_face", '-System Default-')
-        size = s.get("font_size", 10)
-        options = s.get("font_options", '[]')
+        foco = FontConfig()
         cs = ColorScheme().parse_content()
         cs_name = cs.parsed[1].get('name', None)
         if cs_name:
             cs_text = "Color Scheme: %s (%s)" % (cs_name, cs.source)
         else:
             cs_text = "Color Scheme: %s" % cs.source
-        sublime.status_message("Current Font: %s @ %spx, Options: %s, %s" %(face, size, options, cs_text))
+        sublime.status_message("Current Font: %s @ %spx, AA: %s Options: %s, %s" %(foco.face, foco.size, foco.aa(), foco.options, cs_text))
+
+
+class SelectAntiAliasCommand(sublime_plugin.ApplicationCommand):
+
+    def run(self, value=None):
+        foco = FontConfig()
+        if value:
+            foco.aa(value)
+            foco.save_settings()
+        else:
+            foco.select_aa()
+    
+class SelectFontSizeCommand(sublime_plugin.ApplicationCommand):
+
+    def run(self, value=None):
+        foco = FontConfig()
+        foco.select_size()
+
 
 # Allow total control over font size incr/decr,  freedom when adjusting font size
 class AdjustFontSizeCommand(sublime_plugin.ApplicationCommand):
