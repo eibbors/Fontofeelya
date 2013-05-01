@@ -1,7 +1,7 @@
 [
 	{
 		"caption": "Fontofeelya: Add FgBg Glow to Color Scheme"
-	,	"command": "fgbg_glow", "args": {"magn": 14}
+	,	"command": "fgbg_glow", "args": {"magn": "panel"}
 	}
 ,	{
 		"caption": "Fontofeelya: Invert Color Scheme"
@@ -14,6 +14,10 @@
 ,	{
 		"caption": "Fontofeelya: Darken Color Scheme"
 	,	"command": "darken_colors"
+	},	
+	{
+		"caption": "Fontofeelya: Adjust Color Scheme Brightness"
+	,	"command": "adjust_brightness", "args": {"magn": "panel"}
 	}
 ,	{
 		"caption": "Fontofeelya: Desaturate Color Scheme"

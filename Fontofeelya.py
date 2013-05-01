@@ -3,17 +3,34 @@ import os
 import sublime
 import sublime_plugin
 
-# Account for platform differences in antialias and all font options
+# Account for platform differences in antialiasing and all font options
 AA_TYPES = ['no_antialias', 'gray_antialias', 'subpixel_antialias']
 if sublime.platform() == 'windows':
     AA_TYPES.append('directwrite') 
 FONT_OPTIONS = AA_TYPES.copy().extend(['no_bold', 'no_italic'])
 if sublime.platform() == 'osx':
-    FONT_OPTIONS.append('no_round')
+    FONT_OPTIONS.append('no_round') 
 
+# All of the keys I could find in my obscenely large collection of schemes
+# BASE -> uber important required by all (except scope/root)
+# COLORS -> colory meaty goodness, the vast majority end up here
+# STYLES -> FONT_STYLES outlines possible values below
+# META -> these can be nice to have, but don't serve any real purpose in ST3
+PLIST_KEYS = {
+    'BASE': ['name', 'scope', 'settings'],
+    'COLORS': ['background', 'foreground', 'caret', 'invisibles', 'lineHighlight', 'selection', 'findHighlight', 'findHighlightForeground', 'selectionBorder', 'bracketContentsOptions', 'tagsForeground', 'activeGuide', 'bracketContentsForeground', 'bracketsForeground', 'inactiveSelection', 'guide', 'gutterForeground', 'selectionForeground', 'inactiveSelectionForeground'],
+    'STYLES': ['fontStyle', 'braketsOptions', 'bracketContentsOptions', 'tagsOptions'],
+    'META': ['comment', 'author', 'uuid'],
+}
+
+# The possibilities are endless! Errr wait a second...
+FONT_STYLES = ['bold', 'italic', 'underline', 'stippled_underline']
+
+# The default font_size, taken from sublime text's font.py, should
+# move to settings to allow customization eventually.
 DEFAULT_FONTSIZE = 10
 
-# Regular Expressions used to parsed tmTheme files
+# Regular Expressions used to parse tmTheme files
 DICT_REGEX = re.compile(r'\s*(<dict>[\S\s]*?<key>\s*settings\s*</key>\s*<dict>[\S\s]*?</dict>\s*</dict>)\s*')
 KEY_STRING_REGEX = re.compile(r'\s*<key>(?P<k>[^<]+)</key>\s*<string>(?P<v>[^<]*)</string>\s*')
 COLOR_REGEX = re.compile(r'^#(?P<r>[a-f\d]{1,2})(?P<g>[a-f\d]{1,2})(?P<b>[a-f\d]{1,2})(?P<a>[a-f\d]{2})?$', re.IGNORECASE)
@@ -343,16 +360,47 @@ class FontConfig(object):
 
 
 
+GLOW_MENU = ['%s%% glow; %s[%s] alpha' % (i, round(i*2.55), int2color(round(i*2.55))) for i in range(100)]
+BRIGHTNESS_MENU = ['%s%% brighter; %s[%s] value' % (i, round(i*2.55), int2color(round(i*2.55))) for i in range(50,-50,-1)]
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # COLOR SCHEME COMMANDS ----------------------------------------------------------- #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-         
 
+# Adjust FgBg Glow using panel or add glow of magnitude magn
 class FgbgGlowCommand(sublime_plugin.ApplicationCommand):
 
-    def run(self, magn=14):
-        cs = ColorScheme().parse_content(lambda p: fgbg_glow(p, magn)).serial_save_update()
+    def run(self, magn='panel'):
+        if magn == 'panel':
+            self.original = ColorScheme()
+            self.window = sublime.active_window() 
+            self.window.show_quick_panel(GLOW_MENU, lambda p: sublime.status_message('FgBg glow alpha set to %s' % p), 0, 5, self.panel_action)
+        else:
+            cs = ColorScheme().parse_content(lambda p: fgbg_glow(p, magn)).serial_save_update()
 
+    def panel_action(self, magn=None):
+        self.original.update_settings()
+        if magn > 0:
+            magn = round(magn*2.55)
+            ColorScheme().parse_content(lambda p: fgbg_glow(p, magn)).serial_save_update()
+
+
+# Adjust brightness using panel otherwise identical to brighten
+class AdjustBrightnessCommand(sublime_plugin.ApplicationCommand):
+
+    def run(self, magn='panel'):
+        if magn == 'panel':
+            self.original = ColorScheme()
+            self.window = sublime.active_window() 
+            self.window.show_quick_panel(BRIGHTNESS_MENU, lambda p: sublime.status_message('Brightness + %s%%' % (p-50)), 0, 50, self.panel_action)
+        else:
+            cs = ColorScheme().parse_content().map_colors(lambda c: c.brighten(magn)).serial_save_update()
+
+    def panel_action(self, magn=None):
+        self.original.update_settings()
+        if magn > 0:
+            magn -= 50
+            ColorScheme().parse_content().map_colors(lambda c: c.darken(magn)).serial_save_update()
 
 class BrightenColorsCommand(sublime_plugin.ApplicationCommand):
 
@@ -416,11 +464,11 @@ class SelectAntiAliasCommand(sublime_plugin.ApplicationCommand):
 
     def run(self, value=None):
         foco = FontConfig()
-        if value:
+        if value is None:
+            foco.select_aa()
+        else:
             foco.aa(value)
             foco.save_settings()
-        else:
-            foco.select_aa()
     
 class SelectFontSizeCommand(sublime_plugin.ApplicationCommand):
 

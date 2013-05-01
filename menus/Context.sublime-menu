@@ -10,6 +10,8 @@
 				"caption": "Font Size",
 				"id": "fontofeelya-fontsize-menu",
 				"children":[
+					{ "caption" : "Font Size Panel", "command": "select_font_size" },
+					{ "caption" : "-" },
 					{ "caption": "Increase +50%", "command": "adjust_font_size", "args": {"magn": 0.5} },	
 					{ "caption": "Increase +20%", "command": "adjust_font_size", "args": {"magn": 0.2} },	
 					{ "caption": "Increment ++", "command": "adjust_font_size", "args": {"magn": 1} },	
@@ -22,15 +24,32 @@
 				]
 			},
 			{
+				"caption": "Anti-Aliasing",
+				"id": "fontofeelya-antialias-menu",
+				"children":[
+					{ "caption" : "Anti-Alias Panel", "command": "select_anti_alias" },
+					{ "caption" : "-" },
+					{ "caption": "Subpixel (LCD)", "command": "select_anti_alias", "args": { "value": 2} },	
+					{ "caption": "Grayscale", "command": "select_anti_alias", "args": { "value": 1} },	
+					{ "caption": "None", "command": "select_anti_alias", "args": { "value": 0} },	
+					{ "caption" : "-" },
+					{ "caption": "Reset", "command": "select_anti_alias", "args": {"value": -1} },
+				]
+			},			
+			{
 				"caption": "Color Scheme",
 				"id": "fontofeelya-colors-menu",
 				"children":[
-					{ "command": "brighten_colors", "caption" : "Brighten" },
-					{ "command": "darken_colors", "caption" : "Darken" },
+					{ "command": "adjust_brightness", "caption" : "Brightness Panel"},
+					{ "command": "fgbg_glow", "caption" : "FgBg Glow Panel"},
 					{ "caption" : "-" },
-					{ "command": "fgbg_glow", "caption" : "Add Glow" },
-					{ "command": "invert_colors", "caption" : "Invert" },
-					{ "command": "desaturate_colors", "caption" : "Desaturate" },
+					{ "command": "brighten_colors", "caption" : "Brighten Colors" },
+					{ "command": "darken_colors", "caption" : "Darken Colors" },
+					{ "caption" : "-" },
+					{ "command": "fgbg_glow", "caption" : "Add FgBg Glow", "args": {"magn": 14} },
+					{ "caption" : "-" },
+					{ "command": "invert_colors", "caption" : "Invert Scheme" },
+					{ "command": "desaturate_colors", "caption" : "Desaturate Scheme" },
 				]
 			}
 		]
